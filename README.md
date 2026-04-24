@@ -25,7 +25,39 @@ hermes_backup_YYYYMMDD.tar.gz
 
 ### 第一步：安装 Hermes Agent
 
-按原来方式在新电脑安装 Hermes Agent（略）。
+**1. 克隆项目**
+```bash
+git clone <hermes-agent仓库地址>
+cd hermes-agent
+```
+
+**2. 创建虚拟环境**
+```bash
+python -m venv venv
+source venv/bin/activate    # Linux/macOS
+# venv\Scripts\activate     # Windows
+```
+
+**3. 安装依赖**
+```bash
+uv pip install -e .
+```
+
+**4. 激活 linger（允许后台服务）**
+```bash
+sudo loginctl enable-linger dministrator
+```
+
+**5. 启动 Gateway**
+```bash
+hermes gateway restart
+```
+
+**验证安装**
+```bash
+hermes --version
+```
+应显示：`Hermes Agent v0.10.0` 或更高版本
 
 ### 第二步：获取备份文件
 
