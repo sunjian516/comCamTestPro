@@ -191,7 +191,11 @@ asyncio.run(send_reminders(meetings))
 1. **xurl CLI 未安装**：cron prompt 引用 xurl skill 但机器上没有，运行时必须改用 send_weixin_direct
 2. **必须用 execute_code**：不能用 `send_message` 工具，会报错 `"Timeout context manager should be used inside a task"`
 3. **bot credentials 在 `~/.hermes/weixin/accounts/*.json`**：遍历尝试，session timeout 时换另一个 bot
-4. **30分钟窗口判断**：cron `*/5 * * * *`，筛选 会议时间-当前时间 ∈ [30, 35] 分钟 的会议，只发"会议"类型，跳过"个人"类型
+4. **30分钟窗口判断（精确版）**：cron `*/5 * * * *`
+   - 触发条件：`触发时间 <= 当前时间 < 触发时间+5分钟`
+   - 其中 `触发时间 = 会议时间 - 30分钟`
+   - 例如9:30的会议，触发窗口为 [9:00, 9:05)，9:00或9:05的cron执行会命中
+   - **切勿**写成 `[会议时间-30, 会议时间+2]` —— 9:26也会命中，那是错的！
 
 ### 两种提醒模式
 

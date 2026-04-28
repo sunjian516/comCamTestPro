@@ -18,15 +18,15 @@
       "schedule_display": "*/5 * * * *",
       "repeat": {
         "times": null,
-        "completed": 813
+        "completed": 817
       },
       "enabled": true,
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-04-25T09:39:34.518571+08:00",
-      "next_run_at": "2026-04-28T10:00:00+08:00",
-      "last_run_at": "2026-04-28T09:55:47.941370+08:00",
+      "next_run_at": "2026-04-28T10:20:00+08:00",
+      "last_run_at": "2026-04-28T10:16:24.412246+08:00",
       "last_status": "ok",
       "last_error": null,
       "last_delivery_error": null,
@@ -41,7 +41,7 @@
     {
       "id": "5cbc9ee8d344",
       "name": "Hermes GitHub Weekly Backup",
-      "prompt": "\u6267\u884c hermes_backup GitHub \u63a8\u9001\u4efb\u52a1\uff1a\n\n1. \u6253\u5305\u5907\u4efd\uff1a\n```bash\ntar -czvf /tmp/hermes_backup_$(date +%Y%m%d).tar.gz ~/.hermes/ 2>/dev/null\n```\n\n2. \u63a8\u9001\u5230 GitHub\uff1a\n```bash\ncd ~/.hermes && git add -A && git commit -m \"Backup $(date +%Y%m%d)\" && git push\n```\n\n3. \u6e05\u7406\u65e7\u5907\u4efd\uff1a\n```bash\nrm -f /tmp/hermes_backup_*.tar.gz\n```\n\n\u5b8c\u6210\u540e\u5728 Home \u6e20\u9053\u6c47\u62a5\u7ed3\u679c\u3002",
+      "prompt": "\u4f60\u662f\u77e5\u884cAgent\u7684GitHub\u5907\u4efd\u52a9\u624b\u3002\u6bcf\u5468\u65e523\u70b9\u81ea\u52a8\u6267\u884c\uff0c\u5c06Agent\u914d\u7f6e\u5907\u4efd\u5230GitHub\uff0c\u5e76\u66f4\u65b0\u5907\u4efd\u8bb0\u5f55\u3002\n\n## \u5907\u4efd\u8303\u56f4\uff08\u5fc5\u987b\uff09\n\u4ee5\u4e0b\u6587\u4ef6/\u76ee\u5f55\u5907\u4efd\u5230 `backup/agent/`\uff1a\n- `~/.hermes/memories/MEMORY.md` \u2192 `backup/agent/MEMORY.md`\n- `~/.hermes/memories/USER.md` \u2192 `backup/agent/USER.md`\n- `~/.hermes/SOUL.md` \u2192 `backup/agent/SOUL.md`\n- `~/.hermes/cron/jobs.json` \u2192 `backup/agent/jobs.json`\n\n\u6280\u80fd\u76ee\u5f55\u5907\u4efd\uff08\u6309\u9700\uff09\uff1a\n- `~/.hermes/skills/productivity/meeting-reminder-cron/SKILL.md` \u2192 `backup/agent/skills/productivity-meeting-reminder-cron.md`\n- `~/.hermes/skills/productivity/system-operations-weekly-report/SKILL.md` \u2192 `backup/agent/skills/productivity-system-operations-weekly-report.md`\n- `~/.hermes/skills/github/github-auth/SKILL.md` \u2192 `backup/agent/skills/github-github-auth.md`\n- `~/.hermes/skills/github/github-repo-management/SKILL.md` \u2192 `backup/agent/skills/github-github-repo-management.md`\n\n## \u5907\u4efd\u6b65\u9aa4\n\n1. \u514b\u9686\u4ed3\u5e93\uff08\u5982\u672c\u5730\u5df2\u6709\u5219\u8df3\u8fc7\uff09\n```bash\ncd /home/dministrator/projects/comCamTestPro || git clone git@github.com:sunjian516/comCamTestPro.git /home/dministrator/projects/comCamTestPro\n```\n\n2. \u521b\u5efa\u76ee\u5f55\u5e76\u590d\u5236\u6587\u4ef6\n```bash\nREPO_DIR=\"/home/dministrator/projects/comCamTestPro\"\nAGENT_DIR=\"$REPO_DIR/backup/agent\"\nmkdir -p \"$AGENT_DIR/skills\"\n\n# \u590d\u5236\u6838\u5fc3\u6587\u4ef6\ncp ~/.hermes/memories/MEMORY.md \"$AGENT_DIR/\"\ncp ~/.hermes/memories/USER.md \"$AGENT_DIR/\"\ncp ~/.hermes/SOUL.md \"$AGENT_DIR/\"\ncp ~/.hermes/cron/jobs.json \"$AGENT_DIR/\"\n\n# \u590d\u5236\u6280\u80fd\u6587\u4ef6\nSKILLS=(\n  \"productivity/meeting-reminder-cron:productivity-meeting-reminder-cron\"\n  \"productivity/system-operations-weekly-report:productivity-system-operations-weekly-report\"\n  \"github/github-auth:github-github-auth\"\n  \"github/github-repo-management:github-github-repo-management\"\n)\nfor item in \"${SKILLS[@]}\"; do\n  src=\"${item%%:*}\"\n  dst=\"${item##*:}\"\n  mkdir -p \"$(dirname ~/.hermes/skills/$src)\"\n  cp \"~/.hermes/skills/$src/SKILL.md\" \"$AGENT_DIR/skills/$dst.md\" 2>/dev/null || true\ndone\n```\n\n3. \u66f4\u65b0 README.md \u5907\u4efd\u8bb0\u5f55\n\u5728 `backup/README.md` \u7684\u5907\u4efd\u8bb0\u5f55\u8868\u683c\u4e2d\u8ffd\u52a0\u4e00\u884c\uff1a\n```\n| $(date '+%Y-%m-%d %H:%M') | \u6bcf\u5468\u4f8b\u884c\u5907\u4efd\uff1aMEMORY.md\u3001USER.md\u3001SOUL.md\u3001jobs.json\u3001skills |\n```\n\n4. \u63d0\u4ea4\u63a8\u9001\n```bash\ncd \"$REPO_DIR\"\ngit add backup/\ngit config core.compression 9\ngit commit -m \"\ud83e\udd16 \u6bcf\u5468\u5907\u4efd $(date '+%Y-%m-%d %H:%M')\"\ngit push\n```\n\n## \u4e0d\u5907\u4efd\u7684\u5185\u5bb9\uff08\u660e\u786e\u6392\u9664\uff09\n- `~/.hermes/data/meetings_latest.txt` \u2014 \u4f1a\u8bae\u65e5\u7a0b\uff08\u79c1\u5bc6\uff09\n- `~/.hermes/data/meeting_reminders_log.txt` \u2014 \u63d0\u9192\u65e5\u5fd7\uff08\u79c1\u5bc6\uff09\n- \u4efb\u4f55\u5305\u542b\u79c1\u4eba\u65e5\u7a0b\u3001\u7528\u6237\u9690\u79c1\u7684\u6587\u4ef6\n\n## \u5b8c\u6210\u540e\n\u9759\u9ed8\u5b8c\u6210\uff0c\u4e0d\u53d1\u5fae\u4fe1\u63a8\u9001\uff08\u5907\u4efd\u662f\u81ea\u52a8\u4f8b\u884c\u4efb\u52a1\uff0c\u4e0d\u6253\u6270\u7528\u6237\uff09",
       "skills": [],
       "skill": null,
       "model": null,
@@ -233,5 +233,5 @@
       }
     }
   ],
-  "updated_at": "2026-04-28T09:55:47.942386+08:00"
+  "updated_at": "2026-04-28T10:16:24.413214+08:00"
 }

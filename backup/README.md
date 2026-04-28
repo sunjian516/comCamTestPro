@@ -59,6 +59,7 @@ cp backup/agent/skills/productivity-meeting-reminder-cron.md "$SKILLS_DIR/meetin
 | 时间 | 内容说明 |
 |------|----------|
 | 2026-04-28 10:00 | 首次完整备份：MEMORY.md、USER.md、SOUL.md、jobs.json、skills（含会议提醒、绩效考核、GitHub认证等核心技能） |
+| 2026-04-28 10:20 | 每周例行备份：MEMORY.md、USER.md、SOUL.md、jobs.json、skills |
 
 ---
 
