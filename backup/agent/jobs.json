@@ -1,0 +1,237 @@
+{
+  "jobs": [
+    {
+      "id": "04da028ba614",
+      "name": "\u673a\u7535\u4fe1\u606f\u4fdd\u969c\u90e8\u4f1a\u8bae\u63d0\u9192",
+      "prompt": "\u4f60\u662f\u673a\u7535\u4fe1\u606f\u4fdd\u969c\u90e8\u7684\u4f1a\u8bae\u63d0\u9192\u52a9\u624b\u3002\u6bcf5\u5206\u949f\u81ea\u52a8\u68c0\u67e5\uff0c\u63d0\u524d30\u5206\u949f\u5fae\u4fe1\u63d0\u9192\u3002\n\n## \u65f6\u95f4\u8fc7\u6ee4\uff08\u91cd\u8981\uff09\n**\u53ea\u5728\u6bcf\u59296:00~18:00\u4e4b\u95f4\u6267\u884c\u63d0\u9192**\n- \u5f53\u524d\u65f6\u95f4 6\u70b9\u524d \u6216 18\u70b9\u540e \u2192 **\u7acb\u5373\u9000\u51fa\uff0c\u4e0d\u505a\u4efb\u4f55\u64cd\u4f5c**\n\n## \u4f1a\u8bae\u6570\u636e\u8bfb\u53d6\n\u4ece\u6587\u4ef6 `/home/dministrator/.hermes/data/meetings_latest.txt` \u8bfb\u53d6\u5f53\u524d\u5468\u7684\u4f1a\u8bae\u6570\u636e\u3002\u683c\u5f0f\u4e3aPython\u5217\u8868\uff0c\u6bcf\u4e2a\u6761\u76ee\u4e3a7\u5143\u7d20\u5143\u7ec4\uff1a\n`(day_idx, time, name, location, attendees, scope, type)`\n- day_idx: 0=\u5468\u4e00, 1=\u5468\u4e8c, ..., 6=\u5468\u65e5\n- time: \"HH:MM\" \u683c\u5f0f\n- type: \"\u4f1a\u8bae\" \u6216 \"\u4e2a\u4eba\"\n- \u7f3a\u5931\u5b57\u6bb5\u7528 \"-\" \u586b\u5145\n\n## \u63d0\u9192\u903b\u8f91\uff08Python\u5b9e\u73b0\uff09\n\n```python\nfrom datetime import datetime, timedelta\n\n# 1. \u83b7\u53d6\u5f53\u524d\u65f6\u95f4\nnow = datetime.now()\ncurrent_hour = now.hour\n\n# 2. \u65f6\u95f4\u8fc7\u6ee4\uff1a\u53ea\u57286:00-18:00\u4e4b\u95f4\u6267\u884c\nif current_hour < 6 or current_hour >= 18:\n    print(\"\u4e0d\u5728\u63d0\u9192\u65f6\u95f4\u8303\u56f4\u5185\uff086:00-18:00\uff09\uff0c\u9000\u51fa\")\n    exit(0)\n\n# 3. \u8ba1\u7b97\u4eca\u5929\u662f\u5468\u51e0 (0=\u5468\u4e00)\ntoday_weekday = now.weekday()\nday_names = ['\u5468\u4e00','\u5468\u4e8c','\u5468\u4e09','\u5468\u56db','\u5468\u4e94','\u5468\u516d','\u5468\u65e5']\n\n# 4. \u8bfb\u53d6\u4f1a\u8bae\u6570\u636e\nimport ast\ntry:\n    with open('/home/dministrator/.hermes/data/meetings_latest.txt', 'r', encoding='utf-8') as f:\n        content = f.read().strip()\n    if not content:\n        exit(0)\n    meetings = ast.literal_eval(content)\nexcept:\n    exit(0)\n\n# 5. \u627e\u4eca\u5929\u4e14type=\"\u4f1a\u8bae\"\u7684\u6761\u76ee\ntoday_meetings = []\nfor m in meetings:\n    day_idx, time_str, name, location, attendees, scope, mtype = m\n    if day_idx != today_weekday:\n        continue\n    if mtype != \"\u4f1a\u8bae\":\n        continue\n    # \u89e3\u6790\u4f1a\u8bae\u65f6\u95f4\n    h, m = map(int, time_str.split(':'))\n    meeting_dt = now.replace(hour=h, minute=m, second=0, microsecond=0)\n    today_meetings.append((meeting_dt, m, name, location, attendees, scope))\n\n# 6. \u68c0\u67e5\u9632\u91cd\u590d\u53d1\u9001\u65e5\u5fd7\nlog_file = '/home/dministrator/.hermes/data/meeting_reminders_log.txt'\nsent_today = set()\ntry:\n    with open(log_file, 'r', encoding='utf-8') as f:\n        today_str = now.strftime('%Y-%m-%d')\n        for line in f:\n            if line.startswith(today_str):\n                sent_today.add(line.strip())\nexcept:\n    pass\n\n# 7. \u904d\u5386\u627e\u89e6\u53d1\u7a97\u53e3\uff1a\u5f53\u524d\u65f6\u95f4\u5728 [\u4f1a\u8bae\u65f6\u95f4-30\u5206\u949f, \u4f1a\u8bae\u65f6\u95f4-25\u5206\u949f] \u4e4b\u95f4\nto_remind = []\nfor meeting_dt, raw_m, name, location, attendees, scope in today_meetings:\n    # \u4f1a\u8bae30\u5206\u949f\u524d\u7684\u65f6\u95f4\u70b9\n    trigger_start = meeting_dt - timedelta(minutes=30)\n    trigger_end = meeting_dt - timedelta(minutes=25)\n    \n    # \u5f53\u524d\u65f6\u95f4\u662f\u5426\u5728\u89e6\u53d1\u7a97\u53e3\u5185\n    if trigger_start <= now <= trigger_end:\n        # \u751f\u6210\u552f\u4e00\u6807\u8bc6\u68c0\u67e5\u662f\u5426\u5df2\u53d1\n        uid = f\"{today_weekday}_{name}_{trigger_start.strftime('%H%M')}\"\n        if uid not in sent_today:\n            to_remind.append((name, time_str, location, attendees, scope))\n            # \u5199\u5165\u65e5\u5fd7\n            with open(log_file, 'a', encoding='utf-8') as f:\n                f.write(f\"{now.strftime('%Y-%m-%d %H:%M:%S')} {uid}\\n\")\n\nprint(f\"\u627e\u5230 {len(to_remind)} \u4e2a\u9700\u8981\u63d0\u9192\u7684\u4f1a\u8bae\")\n```\n\n## \u53d1\u9001\u683c\u5f0f\n\n\u627e\u5230\u9700\u8981\u63d0\u9192\u7684\u4f1a\u8bae\u540e\uff0c\u7528 execute_code \u53d1\u9001\u5fae\u4fe1\uff1a\n\n```python\nimport sys, os, asyncio\nsys.path.insert(0, '/home/dministrator/projects/hermes-agent')\nos.chdir('/home/dministrator/projects/hermes-agent')\nimport gateway.platforms.weixin as wx\nimport json\n\naccounts_dir = \"/home/dministrator/.hermes/weixin/accounts\"\nbot_creds = []\nfor f in os.listdir(accounts_dir):\n    if f.endswith(\"@im.bot.json\"):\n        path = os.path.join(accounts_dir, f)\n        with open(path) as fp:\n            data = json.load(fp)\n        bot_creds.append({\n            \"account_id\": data.get('user_id', '').split('@')[0],\n            \"token\": data.get('token', ''),\n            \"wechat_user_id\": data.get('user_id', '')\n        })\n\nchat_id = \"o9cq804Yq-r837AH5C_ou5qzp_kg@im.wechat\"\n\ndef build_msg(meeting):\n    name, time_str, location, attendees, scope = meeting\n    return f\"\"\"\ud83d\udccb \u4f1a\u8bae\u63d0\u9192\u3010\u4eca\u65e5 {time_str}\u3011\n\n\ud83c\udff7 \u540d\u79f0\uff1a{name}\n\ud83d\udccd \u5730\u70b9\uff1a{location}\n\ud83d\udc64 \u51fa\u5e2d\uff1a{attendees}\n\ud83d\udccc \u8303\u56f4\uff1a{scope}\n\u23f0 \u65f6\u95f4\uff1a\u4eca\u65e5 {time_str}\uff08**\u63d0\u524d30\u5206\u949f\u63d0\u9192**\uff09\n\n\u8bf7\u76f8\u5173\u4eba\u5458\u51c6\u65f6\u53c2\u52a0\u3002\"\"\"\n\nasync def send_reminders(meetings_to_remind):\n    for creds in bot_creds:\n        try:\n            for m in meetings_to_remind:\n                await wx.send_weixin_direct(\n                    token=creds[\"token\"],\n                    extra={\"account_id\": creds[\"account_id\"]},\n                    chat_id=chat_id,\n                    message=build_msg(m),\n                    media_files=[]\n                )\n            return True\n        except Exception as e:\n            print(f\"Failed with {creds['account_id']}: {e}\")\n    return False\n\n# to_remind \u53d8\u91cf\u4ece\u4e0a\u9762Python\u4f20\u6765\nasyncio.run(send_reminders(to_remind))\n```\n\n## \u5173\u952e\u4fee\u590d\u70b9\n\n1. **\u89e6\u53d1\u7a97\u53e3\u7cbe\u786e**\uff1a\u53ea\u5728\u8fd9\u4e2a\u7a97\u53e3\u5185\u624d\u53d1\uff1a`[\u4f1a\u8bae\u65f6\u95f4-30\u5206\u949f, \u4f1a\u8bae\u65f6\u95f4-25\u5206\u949f]`\n   - 9:30\u7684\u4f1a\u8bae \u2192 \u89e6\u53d1\u7a97\u53e3 [9:00, 9:05]\n   - cron\u6bcf5\u5206\u949f\uff0c\u6240\u4ee59:00\u62169:05\u4f1a\u89e6\u53d1\n2. **6\u70b9\u524d/18\u70b9\u540e\u76f4\u63a5\u9000\u51fa**\uff1a\u4e0d\u505a\u4efb\u4f55\u5fae\u4fe1\u64cd\u4f5c\n3. **\u9632\u91cd\u590d**\uff1a\u68c0\u67e5\u65e5\u5fd7\uff0c\u5df2\u53d1\u8fc7\u4e0d\u91cd\u53d1\n4. **type\u8fc7\u6ee4**\uff1a\u53ea\u63d0\u9192\"\u4f1a\u8bae\"\uff0c\u4e0d\u63d0\u9192\"\u4e2a\u4eba\"",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "base_url": null,
+      "script": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "*/5 * * * *",
+        "display": "*/5 * * * *"
+      },
+      "schedule_display": "*/5 * * * *",
+      "repeat": {
+        "times": null,
+        "completed": 813
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-04-25T09:39:34.518571+08:00",
+      "next_run_at": "2026-04-28T10:00:00+08:00",
+      "last_run_at": "2026-04-28T09:55:47.941370+08:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "local",
+      "origin": {
+        "platform": "weixin",
+        "chat_id": "o9cq804Yq-r837AH5C_ou5qzp_kg@im.wechat",
+        "chat_name": null,
+        "thread_id": null
+      }
+    },
+    {
+      "id": "5cbc9ee8d344",
+      "name": "Hermes GitHub Weekly Backup",
+      "prompt": "\u6267\u884c hermes_backup GitHub \u63a8\u9001\u4efb\u52a1\uff1a\n\n1. \u6253\u5305\u5907\u4efd\uff1a\n```bash\ntar -czvf /tmp/hermes_backup_$(date +%Y%m%d).tar.gz ~/.hermes/ 2>/dev/null\n```\n\n2. \u63a8\u9001\u5230 GitHub\uff1a\n```bash\ncd ~/.hermes && git add -A && git commit -m \"Backup $(date +%Y%m%d)\" && git push\n```\n\n3. \u6e05\u7406\u65e7\u5907\u4efd\uff1a\n```bash\nrm -f /tmp/hermes_backup_*.tar.gz\n```\n\n\u5b8c\u6210\u540e\u5728 Home \u6e20\u9053\u6c47\u62a5\u7ed3\u679c\u3002",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "base_url": null,
+      "script": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 23 * * 0",
+        "display": "0 23 * * 0"
+      },
+      "schedule_display": "0 23 * * 0",
+      "repeat": {
+        "times": 999,
+        "completed": 1
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-04-25T09:39:35.544493+08:00",
+      "next_run_at": "2026-05-03T23:00:00+08:00",
+      "last_run_at": "2026-04-26T23:01:33.363094+08:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "origin",
+      "origin": {
+        "platform": "weixin",
+        "chat_id": "o9cq804Yq-r837AH5C_ou5qzp_kg@im.wechat",
+        "chat_name": null,
+        "thread_id": null
+      }
+    },
+    {
+      "id": "4e3fa958b402",
+      "name": "\u5468\u4e00\u63d0\u9192\uff1a\u5c0f\u7ea2\u4e66\u767b\u5f55",
+      "prompt": "\u63d0\u9192\u8001\u677f\u5468\u4e00\u6709\u4e24\u4ef6\u4e8b\u8981\u5904\u7406\uff1a\n\n1. \u5c0f\u7ea2\u4e66\u767b\u5f55\u4efb\u52a1\uff1a\n   - \u5c0f\u7ea2\u4e66\u767b\u5f55\u88abIP\u98ce\u63a7\u62e6\u622a\uff08\"IP at risk\"\u9519\u8bef\uff09\n   - \u9700\u8981\u5728Chrome\u6d4f\u89c8\u5668\u4e2d\u6253\u5f00\u5c0f\u7ea2\u4e66\u7f51\u9875\u7248\u767b\u5f55\n   - \u767b\u5f55\u8d26\u53f7\uff1a\u4e0d\u8981\u5728\u7fa4\u804a\u53d1\n\n2. \u5230\u5355\u4f4d\u540e\u7528 `hermes g` \u542f\u52a8Gateway",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "base_url": null,
+      "script": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 9 * * 1",
+        "display": "0 9 * * 1"
+      },
+      "schedule_display": "0 9 * * 1",
+      "repeat": {
+        "times": null,
+        "completed": 1
+      },
+      "enabled": false,
+      "state": "paused",
+      "paused_at": "2026-04-28T09:05:25.501122+08:00",
+      "paused_reason": null,
+      "created_at": "2026-04-25T09:39:36.560325+08:00",
+      "next_run_at": "2026-05-04T09:00:00+08:00",
+      "last_run_at": "2026-04-27T09:00:54.601396+08:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": "delivery error: Weixin send failed: Timeout context manager should be used inside a task",
+      "deliver": "weixin",
+      "origin": {
+        "platform": "weixin",
+        "chat_id": "o9cq804Yq-r837AH5C_ou5qzp_kg@im.wechat",
+        "chat_name": null,
+        "thread_id": null
+      }
+    },
+    {
+      "id": "534ab26dcb80",
+      "name": "Hermes Agent \u7248\u672c\u68c0\u67e5",
+      "prompt": "\u4f60\u662f Hermes Agent \u7248\u672c\u76d1\u63a7\u52a9\u624b\u3002\u6bcf\u5929\u68c0\u67e5 GitHub \u4e0a NousResearch/hermes-agent \u7684\u6700\u65b0 Release\uff0c\u53d1\u73b0\u65b0\u7248\u672c\u540e\u901a\u77e5\u8001\u677f\u3002\n\n## \u5f53\u524d\u5df2\u77e5\u7248\u672c\n\u6700\u65b0\u5df2\u77e5\u7248\u672c\uff1av0.10.0 (v2026.4.16)\uff0c\u53d1\u5e03\u4e8e2026\u5e744\u670816\u65e5\u3002\n\n## \u68c0\u67e5\u6b65\u9aa4\n\n1. \u8bbf\u95ee GitHub Releases \u9875\u9762\uff1ahttps://github.com/NousResearch/hermes-agent/releases\n2. \u83b7\u53d6\u6700\u65b0\u7248\u672c\u7684\uff1a\n   - \u7248\u672c\u53f7\uff08\u5982 v0.11.0\uff09\n   - \u53d1\u5e03\u65e5\u671f\n   - \u4e3b\u8981\u65b0\u529f\u80fd\uff08Release Notes \u6458\u8981\uff09\n3. \u5982\u679c\u53d1\u73b0\u65b0\u7248\u672c > v0.10.0\uff0c\u5219\uff1a\n   - \u5b8c\u6574\u5217\u51fa\u65b0\u7248\u672c\u7684\u7248\u672c\u53f7\u3001\u53d1\u5e03\u65e5\u671f\n   - \u8be6\u7ec6\u5217\u51fa\u65b0\u529f\u80fd\u8981\u70b9\uff08\u4ece Release Notes \u63d0\u53d6\uff09\n   - \u660e\u786e\u8bf4\u660e\"\u6b64\u7248\u672c\u9700\u8981\u60a8\u786e\u8ba4\u540e\u624d\u8fdb\u884c\u5347\u7ea7\"\n4. \u5982\u679c\u6ca1\u6709\u65b0\u7248\u672c\uff0c\u5219\u56de\u590d\"\u4eca\u65e5\u68c0\u67e5\uff1aHermes Agent \u65e0\u65b0\u7248\u672c\uff0c\u5f53\u524d\u6700\u65b0\u7248\u672c\u4ecd\u4e3a v0.10.0\"\n\n## \u91cd\u8981\u63d0\u9192\n- \u7edd\u4e0d\u81ea\u52a8\u6267\u884c\u5347\u7ea7\u6216 pull \u4ee3\u7801\u64cd\u4f5c\n- \u53ea\u62a5\u544a\uff0c\u4e0d\u4fee\u6539\n- \u68c0\u67e5\u7ed3\u679c\u53d1\u9001\u5230 WeChat \u8001\u677f",
+      "skills": [
+        "browser"
+      ],
+      "skill": "browser",
+      "model": null,
+      "provider": null,
+      "base_url": null,
+      "script": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 21 * * *",
+        "display": "0 21 * * *"
+      },
+      "schedule_display": "0 21 * * *",
+      "repeat": {
+        "times": 999,
+        "completed": 1
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-04-27T10:06:09.123360+08:00",
+      "next_run_at": "2026-04-28T21:00:00+08:00",
+      "last_run_at": "2026-04-27T21:00:42.231303+08:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "origin",
+      "origin": {
+        "platform": "weixin",
+        "chat_id": "o9cq804Yq-r837AH5C_ou5qzp_kg@im.wechat",
+        "chat_name": null,
+        "thread_id": null
+      }
+    },
+    {
+      "id": "e3357666eb32",
+      "name": "\u7cfb\u7edf\u8fd0\u884c\u90e8\u6708\u5ea6\u7ee9\u6548\u5206\u6790",
+      "prompt": "\u4f60\u662f\u7cfb\u7edf\u8fd0\u884c\u90e8\u6708\u5ea6\u7ee9\u6548\u5206\u6790\u52a9\u624b\u3002\u6bcf\u67081\u53f7\u81ea\u52a8\u6c47\u603b\u5206\u6790\u524d\u4e00\u4e2a\u6708\u76844\u6b21\u5468\u62a5\uff0c\u751f\u6210\u79d1\u5ba4\u6708\u5ea6\u7ee9\u6548\u5206\u6790\u62a5\u544a\uff0c\u7528\u4e8e\u79d1\u5ba4\u5458\u5de5\u7ee9\u6548\u8003\u6838\u53c2\u8003\u3002\n\n## \u8f93\u5165\u6587\u4ef6\n\u524d\u4e00\u4e2a\u6708\u76844\u4efd\u5468\u62a5Word\u6587\u4ef6\uff0c\u4fdd\u5b58\u5728\uff1a\n/home/dministrator/.hermes/cache/documents/\n\u6587\u4ef6\u547d\u540d\u683c\u5f0f\uff1a\u7cfb\u7edf\u8fd0\u884c\u90e8\u4e00\u5468\u5de5\u4f5c\u603b\u7ed3\uff08YYMMDD-YYMMDD\uff09.docx\n\u4f8b\u5982\uff1a\u7cfb\u7edf\u8fd0\u884c\u90e8\u4e00\u5468\u5de5\u4f5c\u603b\u7ed3\uff080330-0405\uff09.docx\n\n## \u5206\u6790\u6b65\u9aa4\n\n1. \u8bfb\u53d6\u524d\u4e00\u4e2a\u6708\uff08\u81ea\u7136\u6708\uff09\u76844\u4efd\u5468\u62a5\u6587\u4ef6\n2. \u4f9d\u6b21\u63d0\u53d6\u6bcf\u5468\u5404\u4eba\u5458\u7684\u5de5\u4f5c\u4efb\u52a1\u6761\u76ee\n3. \u6c47\u603b\u6bcf\u4e2a\u4eba\u6574\u4e2a\u6708\u7684\u5de5\u4f5c\u91cf\n\n## \u6708\u5ea6\u7ee9\u6548\u5206\u6790\u7ef4\u5ea6\n\n### \u4e00\u3001\u5de5\u4f5c\u91cf\u7edf\u8ba1\uff08\u6309\u4eba\u5458\u6c47\u603b\uff09\n- \u7edf\u8ba1\u6bcf\u4e2a\u4eba\u57284\u5468\u5185\u7684\u4efb\u52a1\u603b\u6761\u6570\n- \u6807\u6ce8\u5468\u4e0e\u5468\u4e4b\u95f4\u7684\u4efb\u52a1\u6570\u91cf\u53d8\u5316\u8d8b\u52bf\n\n### \u4e8c\u3001\u5de5\u4f5c\u5206\u7c7b\u7edf\u8ba1\uff08\u6309\u7c7b\u522b\uff09\n- \u7cfb\u7edf\u7ef4\u62a4\u7c7b\uff08\u6545\u969c\u5904\u7406\u3001\u5de1\u68c0\u3001\u6f14\u7ec3\uff09\n- \u5b89\u5168\u7c7b\uff08SMS\u4e0a\u62a5\u3001\u9690\u60a3\u6392\u67e5\u3001\u4fe1\u606f\u5b89\u5168\uff09\n- \u9879\u76ee\u63a8\u8fdb\u7c7b\uff08\u59d4\u5916\u9879\u76ee\u3001\u62db\u6807\u914d\u5408\u3001\u7cfb\u7edf\u5efa\u8bbe\uff09\n- \u8de8\u90e8\u95e8\u534f\u4f5c\u7c7b\uff08\u914d\u5408\u5b89\u68c0/\u80fd\u6e90/\u6caa\u6e2f/\u516c\u5b89\u7b49\uff09\n- \u65e5\u5e38\u4e8b\u52a1\u7c7b\n\n### \u4e09\u3001\u5de5\u4f5c\u4eae\u70b9\uff08\u6bcf\u6708\u90093-5\u9879\u6700\u7a81\u51fa\u5de5\u4f5c\uff09\n- \u8bf4\u660e\uff1a\u5b8c\u6210\u96be\u5ea6\u9ad8\u3001\u521b\u65b0\u6027\u5f3a\u3001\u98ce\u9669\u7ba1\u63a7\u597d\u3001\u8de8\u90e8\u95e8\u534f\u8c03\u590d\u6742\u7b49\u4eae\u70b9\n- \u6807\u6ce8\u6267\u884c\u4eba\n\n### \u56db\u3001\u98ce\u9669\u63d0\u793a\n- \u6c47\u603b\u6574\u6708\u5b89\u5168/\u6545\u969c/\u98ce\u9669\u4e8b\u4ef6\n- \u9700\u91cd\u70b9\u5173\u6ce8\u7684\u4e8b\u9879\n\n### \u4e94\u3001\u7ee9\u6548\u8003\u6838\u53c2\u8003\u6570\u636e\n\u6309\u4ee5\u4e0b\u7ef4\u5ea6\u751f\u6210\u6bcf\u4e2a\u4eba\u5f53\u6708\u7684\u6570\u636e\u6c47\u603b\uff1a\n- \u603b\u4efb\u52a1\u6570\n- \u5b89\u5168/\u9690\u60a3\u4e0a\u62a5\u6b21\u6570\n- \u8de8\u90e8\u95e8\u534f\u4f5c\u6b21\u6570\n- \u9879\u76ee\u914d\u5408\u6761\u6570\n- \u4eae\u70b9\u5de5\u4f5c\u6570\u91cf\n\n## \u8f93\u51fa\u683c\u5f0f\n\u751f\u6210\u7ed3\u6784\u5316\u7684\u6708\u5ea6\u5206\u6790\u62a5\u544a\uff0c\u5305\u542b\uff1a\n1. \u6708\u5ea6\u5de5\u4f5c\u91cf\u6392\u884c\u699c\uff08\u8868\u683c\uff09\n2. \u5de5\u4f5c\u5206\u7c7b\u5206\u5e03\n3. \u4eae\u70b9\u5de5\u4f5c\u6e05\u5355\n4. \u98ce\u9669\u4e8b\u4ef6\u6c47\u603b\n5. \u7ee9\u6548\u53c2\u8003\u6570\u636e\u8868\n\n## \u6ce8\u610f\u4e8b\u9879\n- \u53ea\u505a\u5206\u6790\uff0c\u4e0d\u4fee\u6539\u4efb\u4f55\u6587\u4ef6\n- \u62a5\u544a\u53d1\u9001\u81f3\u5fae\u4fe1\u8001\u677f\uff08origin\uff09\n- \u5982\u679c\u67d0\u6708\u6587\u4ef6\u4e0d\u8db34\u4efd\uff0c\u6309\u5b9e\u9645\u6570\u91cf\u5206\u6790",
+      "skills": [
+        "file"
+      ],
+      "skill": "file",
+      "model": null,
+      "provider": null,
+      "base_url": null,
+      "script": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 10 1 * *",
+        "display": "0 10 1 * *"
+      },
+      "schedule_display": "0 10 1 * *",
+      "repeat": {
+        "times": 999,
+        "completed": 1
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-04-27T11:06:36.459948+08:00",
+      "next_run_at": "2026-05-01T10:00:00+08:00",
+      "last_run_at": "2026-04-27T13:49:11.356150+08:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "origin",
+      "origin": {
+        "platform": "weixin",
+        "chat_id": "o9cq804Yq-r837AH5C_ou5qzp_kg@im.wechat",
+        "chat_name": null,
+        "thread_id": null
+      }
+    },
+    {
+      "id": "f1ae19e52181",
+      "name": "\u6bcf\u65e57\u70b9\u4f1a\u8bae\u63d0\u9192",
+      "prompt": "\u4f60\u662f\u673a\u7535\u4fe1\u606f\u4fdd\u969c\u90e8\u4f1a\u8bae\u63d0\u9192\u52a9\u624b\u3002\u6bcf\u5929\u65e9\u4e0a7\u70b9\u4ece\u4f1a\u8bae\u6570\u636e\u4e2d\u63d0\u53d6\u5f53\u5929\u4f1a\u8bae\u5b89\u6392\uff0c\u901a\u8fc7\u5fae\u4fe1\u53d1\u9001\u7ed9\u7528\u6237\u3002\n\n## \u53d1\u9001\u65b9\u5f0f\n\u5fc5\u987b\u7528 execute_code \u5de5\u5177\u8fd0\u884c\u4ee5\u4e0b\u4ee3\u7801\u53d1\u9001\u5fae\u4fe1\uff08\u4e0d\u80fd\u7528 send_message \u5de5\u5177\uff09\uff1a\n\n```python\nimport sys, os, asyncio\nsys.path.insert(0, '/home/dministrator/projects/hermes-agent')\nos.chdir('/home/dministrator/projects/hermes-agent')\nimport gateway.platforms.weixin as wx\nimport json\nfrom datetime import datetime, timedelta\n\naccounts_dir = \"/home/dministrator/.hermes/weixin/accounts\"\nbot_creds = []\nfor f in os.listdir(accounts_dir):\n    if f.endswith(\"@im.bot.json\"):\n        path = os.path.join(accounts_dir, f)\n        with open(path) as fp:\n            data = json.load(fp)\n        bot_creds.append({\n            \"account_id\": data.get('user_id', '').split('@')[0],\n            \"token\": data.get('token', ''),\n            \"wechat_user_id\": data.get('user_id', '')\n        })\n\nchat_id = \"o9cq804Yq-r837AH5C_ou5qzp_kg@im.wechat\"\n```\n\n## \u4f1a\u8bae\u6570\u636e\u8bfb\u53d6\n\u4ece\u6587\u4ef6 `/home/dministrator/.hermes/data/meetings_latest.txt` \u8bfb\u53d6\u5f53\u524d\u5468\u7684\u4f1a\u8bae\u6570\u636e\u3002\u683c\u5f0f\u4e3a7\u5143\u7d20\u5143\u7ec4\u6570\u7ec4\uff0c\u6bcf\u4e2a\u5143\u7ec4\uff1a\n`(day_idx, time, name, location, attendees, scope, type)`\n- day_idx: 0=\u5468\u4e00, 1=\u5468\u4e8c, ..., 6=\u5468\u65e5\n- type: \"\u4f1a\u8bae\" \u6216 \"\u4e2a\u4eba\"\n- \u7f3a\u5931\u5b57\u6bb5\u7528 \"-\" \u586b\u5145\n\n## \u63d0\u9192\u903b\u8f91\n1. \u8bfb\u53d6\u5f53\u524d\u65e5\u671f\uff0c\u8ba1\u7b97\u4eca\u5929\u662f\u5468\u51e0\uff08weekday()\uff0c0=\u5468\u4e00\uff09\n2. \u4ece\u4f1a\u8bae\u6570\u636e\u4e2d\u7b5b\u9009 day_idx == \u4eca\u5929 weekday \u4e14 type == \"\u4f1a\u8bae\" \u7684\u6761\u76ee\n3. \u6309\u65f6\u95f4\u6392\u5e8f\n4. \u5982\u679c\u5f53\u5929\u6ca1\u6709\u4f1a\u8bae\uff0c\u53d1\u9001\"\u4eca\u5929\u6682\u65e0\u4f1a\u8bae\u5b89\u6392\"\n5. \u5982\u679c\u6709\u4f1a\u8bae\uff0c\u53d1\u9001\u5f53\u5929\u65e5\u7a0b\u5217\u8868\n\n## \u53d1\u9001\u683c\u5f0f\n```\n\ud83d\udcc5 \u673a\u7535\u4fe1\u606f\u4fdd\u969c\u90e8 \u2014 {\u661f\u671f}\uff08{\u6708}\u6708{\u65e5}\u65e5\uff09\n\n\u23f0 \u4eca\u65e5\u4f1a\u8bae\u5b89\u6392\uff1a\n\n\ud83d\udccc {\u65f6\u95f4} {\u4f1a\u8bae\u540d\u79f0}\n   \ud83d\udccd \u5730\u70b9\uff1a{\u5730\u70b9}\n   \ud83d\udc64 \u51fa\u5e2d\uff1a{\u4e3b\u8981\u51fa\u5e2d\u4eba\u5458}\n   \ud83d\udccc \u8303\u56f4\uff1a{\u53c2\u52a0\u8303\u56f4}\n\n\uff08\u6709\u591a\u573a\u4f1a\u8bae\u5219\u5e76\u5217\u5c55\u793a\uff09\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\ud83c\udf24\ufe0f \u4e0a\u6d77\u4eca\u65e5\u5929\u6c14\uff1a{\u5929\u6c14}\n\u6700\u4f4e\u6c14\u6e29{\u6700\u4f4e}\uff0c\u6700\u9ad8\u6c14\u6e29{\u6700\u9ad8}\n```\n\n\u5929\u6c14\u83b7\u53d6\u65b9\u5f0f\uff1a\u76f4\u63a5\u5199\u6b7b\"\u6674\u6717\"\u6216\u901a\u8fc7 `curl -s \"wttr.in/Shanghai?format=3\"` \u83b7\u53d6\uff08588\u53f7\u5730\u70b9\u624d\u9700\u8981\u67e5\u5929\u6c14\uff0c\u5176\u4ed6\u5730\u70b9\u4e0d\u67e5\uff09\u3002\n\n## \u9632\u91cd\u590d\u53d1\u9001\n\u53d1\u5fae\u4fe1\u524d\u5148\u68c0\u67e5 `/home/dministrator/.hermes/data/daily_7am_reminder_log.txt`\uff0c\u5982\u679c\u4eca\u5929\u7684\u65e5\u671f\u5df2\u53d1\u9001\u8fc7\u5219\u8df3\u8fc7\u3002\u53d1\u9001\u6210\u529f\u540e\u8ffd\u52a0\u65e5\u671f\u5230\u65e5\u5fd7\u6587\u4ef6\u3002\n\n## \u6ce8\u610f\n- \u53ea\u53d1\u9001 type=\"\u4f1a\u8bae\" \u7684\u6761\u76ee\uff0c\"\u4e2a\u4eba\"\u7c7b\u578b\uff08\u5982\u4f53\u68c0\uff09\u4e0d\u53d1\u9001\n- \u5982\u679c\u6587\u4ef6\u4e0d\u5b58\u5728\u6216\u8bfb\u53d6\u5931\u8d25\uff0c\u4e0d\u53d1\u9001\u4efb\u4f55\u5185\u5bb9\uff08\u9759\u9ed8\u5931\u8d25\uff09\n- \u53ea\u53d1\u5fae\u4fe1\uff0c\u4e0d\u53d1\u5176\u4ed6\u6e20\u9053",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "base_url": null,
+      "script": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 7 * * *",
+        "display": "0 7 * * *"
+      },
+      "schedule_display": "0 7 * * *",
+      "repeat": {
+        "times": null,
+        "completed": 0
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-04-28T09:04:27.943740+08:00",
+      "next_run_at": "2026-04-29T07:00:00+08:00",
+      "last_run_at": null,
+      "last_status": null,
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "weixin",
+      "origin": {
+        "platform": "weixin",
+        "chat_id": "o9cq804Yq-r837AH5C_ou5qzp_kg@im.wechat",
+        "chat_name": null,
+        "thread_id": null
+      }
+    }
+  ],
+  "updated_at": "2026-04-28T09:55:47.942386+08:00"
+}
