@@ -50,9 +50,8 @@ class FaceAnalyzeRequest(BaseModel):
     image_base64: str = Field(..., description="图片base64编码")
 
 
-class FaceAnalyzeResponse(BaseModel):
-    found: bool
-    face_count: int
+# 单人人脸分析结果（供多脸/批量返回使用）
+class SingleFaceResult(BaseModel):
     face_id: str = ""
     name: str = ""
     distance: float = 0.0
@@ -60,6 +59,33 @@ class FaceAnalyzeResponse(BaseModel):
     is_match: bool = False
     mask: Optional[MaskInfo] = None
     emotion: Optional[EmotionInfo] = None
+
+
+# 单张图片分析响应（支持多脸）
+class FaceAnalyzeResponse(BaseModel):
+    face_count: int
+    faces: list[SingleFaceResult] = Field(default_factory=list)
+    # ⚠️ 以下字段为兼容旧版保留（仅当 face_count=1 时有意义）
+    found: bool = False
+    face_id: str = ""
+    name: str = ""
+    distance: float = 0.0
+    similarity: float = 0.0
+    is_match: bool = False
+    mask: Optional[MaskInfo] = None
+    emotion: Optional[EmotionInfo] = None
+
+
+# 批量分析请求（一次提交多帧）
+class BatchAnalyzeRequest(BaseModel):
+    images_base64: list[str] = Field(..., description="多张图片base64列表，最大50张")
+    skip_no_face: bool = Field(default=True, description="跳过无人脸的帧")
+
+
+class BatchAnalyzeResponse(BaseModel):
+    total_frames: int
+    processed_frames: int
+    results: list[FaceAnalyzeResponse]
 
 
 class HealthResponse(BaseModel):
