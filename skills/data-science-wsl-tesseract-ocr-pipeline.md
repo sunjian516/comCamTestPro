@@ -94,6 +94,7 @@ def ocr_image(img_path):
 6. **DPI分辨率**：PDF渲染时建议 DPI>=144（使用 `fitz.Matrix(2.0, 2.0)` 即144dpi），低于此值中文OCR识别率显著下降
 7. **chi_sim.traineddata下载**：Aliyun镜像可能返回0字节空文件，下载后必须 `ls -la` 验证文件大小
 8. **先验证JSON结构再写脚本**：读取源JSON文件后，务必先用 `python -c "import json; print(list(json.load(open(...))[0].keys()))"` 确认字段名，再写处理脚本。避免字段名假设错误（如`file_path` vs `path`、`file_name` vs `filename`）导致批量Worker全部失败
+9. **execute_code无法访问/mnt/路径**：execute_code运行在sandboxed Python环境，不挂载WSL的/mnt/路径。所有涉及Windows挂载路径（/mnt/c/、/mnt/e/等）的文件操作，必须用 `terminal()` 而非 `execute_code()`。症状为FileNotFoundError，即使文件在WSL里确实存在。
 
 ## 批量并行Worker最佳实践
 

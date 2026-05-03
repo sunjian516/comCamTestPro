@@ -18,15 +18,15 @@
       "schedule_display": "*/5 * * * *",
       "repeat": {
         "times": null,
-        "completed": 817
+        "completed": 1333
       },
-      "enabled": true,
-      "state": "scheduled",
+      "enabled": false,
+      "state": "completed",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-04-25T09:39:34.518571+08:00",
-      "next_run_at": "2026-04-28T10:20:00+08:00",
-      "last_run_at": "2026-04-28T10:16:24.412246+08:00",
+      "next_run_at": null,
+      "last_run_at": "2026-04-30T16:22:14.905835+08:00",
       "last_status": "ok",
       "last_error": null,
       "last_delivery_error": null,
@@ -41,7 +41,7 @@
     {
       "id": "5cbc9ee8d344",
       "name": "Hermes GitHub Weekly Backup",
-      "prompt": "\u4f60\u662f\u77e5\u884cAgent\u7684GitHub\u5907\u4efd\u52a9\u624b\u3002\u6bcf\u5468\u65e523\u70b9\u81ea\u52a8\u6267\u884c\uff0c\u5c06Agent\u914d\u7f6e\u5907\u4efd\u5230GitHub\uff0c\u5e76\u66f4\u65b0\u5907\u4efd\u8bb0\u5f55\u3002\n\n## \u5907\u4efd\u8303\u56f4\uff08\u5fc5\u987b\uff09\n\u4ee5\u4e0b\u6587\u4ef6/\u76ee\u5f55\u5907\u4efd\u5230 `backup/agent/`\uff1a\n- `~/.hermes/memories/MEMORY.md` \u2192 `backup/agent/MEMORY.md`\n- `~/.hermes/memories/USER.md` \u2192 `backup/agent/USER.md`\n- `~/.hermes/SOUL.md` \u2192 `backup/agent/SOUL.md`\n- `~/.hermes/cron/jobs.json` \u2192 `backup/agent/jobs.json`\n\n\u6280\u80fd\u76ee\u5f55\u5907\u4efd\uff08\u6309\u9700\uff09\uff1a\n- `~/.hermes/skills/productivity/meeting-reminder-cron/SKILL.md` \u2192 `backup/agent/skills/productivity-meeting-reminder-cron.md`\n- `~/.hermes/skills/productivity/system-operations-weekly-report/SKILL.md` \u2192 `backup/agent/skills/productivity-system-operations-weekly-report.md`\n- `~/.hermes/skills/github/github-auth/SKILL.md` \u2192 `backup/agent/skills/github-github-auth.md`\n- `~/.hermes/skills/github/github-repo-management/SKILL.md` \u2192 `backup/agent/skills/github-github-repo-management.md`\n\n## \u5907\u4efd\u6b65\u9aa4\n\n1. \u514b\u9686\u4ed3\u5e93\uff08\u5982\u672c\u5730\u5df2\u6709\u5219\u8df3\u8fc7\uff09\n```bash\ncd /home/dministrator/projects/comCamTestPro || git clone git@github.com:sunjian516/comCamTestPro.git /home/dministrator/projects/comCamTestPro\n```\n\n2. \u521b\u5efa\u76ee\u5f55\u5e76\u590d\u5236\u6587\u4ef6\n```bash\nREPO_DIR=\"/home/dministrator/projects/comCamTestPro\"\nAGENT_DIR=\"$REPO_DIR/backup/agent\"\nmkdir -p \"$AGENT_DIR/skills\"\n\n# \u590d\u5236\u6838\u5fc3\u6587\u4ef6\ncp ~/.hermes/memories/MEMORY.md \"$AGENT_DIR/\"\ncp ~/.hermes/memories/USER.md \"$AGENT_DIR/\"\ncp ~/.hermes/SOUL.md \"$AGENT_DIR/\"\ncp ~/.hermes/cron/jobs.json \"$AGENT_DIR/\"\n\n# \u590d\u5236\u6280\u80fd\u6587\u4ef6\nSKILLS=(\n  \"productivity/meeting-reminder-cron:productivity-meeting-reminder-cron\"\n  \"productivity/system-operations-weekly-report:productivity-system-operations-weekly-report\"\n  \"github/github-auth:github-github-auth\"\n  \"github/github-repo-management:github-github-repo-management\"\n)\nfor item in \"${SKILLS[@]}\"; do\n  src=\"${item%%:*}\"\n  dst=\"${item##*:}\"\n  mkdir -p \"$(dirname ~/.hermes/skills/$src)\"\n  cp \"~/.hermes/skills/$src/SKILL.md\" \"$AGENT_DIR/skills/$dst.md\" 2>/dev/null || true\ndone\n```\n\n3. \u66f4\u65b0 README.md \u5907\u4efd\u8bb0\u5f55\n\u5728 `backup/README.md` \u7684\u5907\u4efd\u8bb0\u5f55\u8868\u683c\u4e2d\u8ffd\u52a0\u4e00\u884c\uff1a\n```\n| $(date '+%Y-%m-%d %H:%M') | \u6bcf\u5468\u4f8b\u884c\u5907\u4efd\uff1aMEMORY.md\u3001USER.md\u3001SOUL.md\u3001jobs.json\u3001skills |\n```\n\n4. \u63d0\u4ea4\u63a8\u9001\n```bash\ncd \"$REPO_DIR\"\ngit add backup/\ngit config core.compression 9\ngit commit -m \"\ud83e\udd16 \u6bcf\u5468\u5907\u4efd $(date '+%Y-%m-%d %H:%M')\"\ngit push\n```\n\n## \u4e0d\u5907\u4efd\u7684\u5185\u5bb9\uff08\u660e\u786e\u6392\u9664\uff09\n- `~/.hermes/data/meetings_latest.txt` \u2014 \u4f1a\u8bae\u65e5\u7a0b\uff08\u79c1\u5bc6\uff09\n- `~/.hermes/data/meeting_reminders_log.txt` \u2014 \u63d0\u9192\u65e5\u5fd7\uff08\u79c1\u5bc6\uff09\n- \u4efb\u4f55\u5305\u542b\u79c1\u4eba\u65e5\u7a0b\u3001\u7528\u6237\u9690\u79c1\u7684\u6587\u4ef6\n\n## \u5b8c\u6210\u540e\n\u9759\u9ed8\u5b8c\u6210\uff0c\u4e0d\u53d1\u5fae\u4fe1\u63a8\u9001\uff08\u5907\u4efd\u662f\u81ea\u52a8\u4f8b\u884c\u4efb\u52a1\uff0c\u4e0d\u6253\u6270\u7528\u6237\uff09",
+      "prompt": "\u4f60\u662f\u77e5\u884cAgent\u7684GitHub\u5907\u4efd\u52a9\u624b\u3002\u6bcf\u5468\u65e523\u70b9\u81ea\u52a8\u6267\u884c\uff0c\u5c06Agent\u5b8c\u6574\u914d\u7f6e\u5907\u4efd\u5230GitHub\uff0c\u5e76\u66f4\u65b0\u5907\u4efd\u8bb0\u5f55\u3002\n\n## \u5907\u4efd\u76ee\u5f55\u7ed3\u6784\n\u4ed3\u5e93\u6839\u76ee\u5f55\uff1a\n```\ncomCamTestPro/\n\u251c\u2500\u2500 README.md\n\u251c\u2500\u2500 MEMORY.md\n\u251c\u2500\u2500 USER.md\n\u251c\u2500\u2500 SOUL.md\n\u251c\u2500\u2500 jobs.json\n\u2514\u2500\u2500 skills/           # \u6240\u6709\u6280\u80fd\u5b9a\u4e49\n    \u251c\u2500\u2500 devops/\n    \u251c\u2500\u2500 github/\n    \u251c\u2500\u2500 productivity/\n    \u251c\u2500\u2500 social-media/\n    \u2514\u2500\u2500 ...           # \u6240\u6709\u5206\u7c7b\n```\n\n## \u5907\u4efd\u8303\u56f4\n\n### \u6838\u5fc3\u914d\u7f6e\uff08\u5fc5\u987b\uff09\n- `~/.hermes/memories/MEMORY.md` \u2192 `MEMORY.md`\n- `~/.hermes/memories/USER.md` \u2192 `USER.md`\n- `~/.hermes/SOUL.md` \u2192 `SOUL.md`\n- `~/.hermes/cron/jobs.json` \u2192 `jobs.json`\n\n### \u5168\u90e8\u6280\u80fd\uff08\u5fc5\u987b\uff09\n\u5c06 `~/.hermes/skills/` \u4e0b\u7684**\u6240\u6709\u6280\u80fd**\u5907\u4efd\u5230 `skills/` \u76ee\u5f55\u3002\n\u6bcf\u4e2a\u6280\u80fd\u76ee\u5f55\u7ed3\u6784\uff1a`skills/<category>/<skill-name>/SKILL.md`\n\u5907\u4efd\u65f6\u5c55\u5e73\u4e3a\uff1a`skills/<category>-<skill-name>.md`\n\n\u793a\u4f8b\uff1a\n- `~/.hermes/skills/devops/bypass-cn-site-detection/SKILL.md` \u2192 `skills/devops-bypass-cn-site-detection.md`\n- `~/.hermes/skills/productivity/meeting-reminder-cron/SKILL.md` \u2192 `skills/productivity-meeting-reminder-cron.md`\n- `~/.hermes/skills/github/github-auth/SKILL.md` \u2192 `skills/github-github-auth.md`\n- `~/.hermes/skills/social-media/weixin-file-send/SKILL.md` \u2192 `skills/social-media-weixin-file-send.md`\n\n## \u5907\u4efd\u6b65\u9aa4\n\n1. \u514b\u9686\u4ed3\u5e93\n```bash\nREPO_DIR=\"/home/dministrator/projects/comCamTestPro\"\n[ ! -d \"$REPO_DIR\" ] && git clone git@github.com:sunjian516/comCamTestPro.git \"$REPO_DIR\"\n```\n\n2. \u5907\u4efd\u6838\u5fc3\u914d\u7f6e\n```bash\ncp ~/.hermes/memories/MEMORY.md \"$REPO_DIR/\"\ncp ~/.hermes/memories/USER.md \"$REPO_DIR/\"\ncp ~/.hermes/SOUL.md \"$REPO_DIR/\"\ncp ~/.hermes/cron/jobs.json \"$REPO_DIR/\"\n```\n\n3. \u5907\u4efd\u5168\u90e8\u6280\u80fd\n```bash\nmkdir -p \"$REPO_DIR/skills\"\n\nfind ~/.hermes/skills -name \"SKILL.md\" | while read src_path; do\n    # \u8ba1\u7b97\u76f8\u5bf9\u8def\u5f84\uff1a~/.hermes/skills/devops/bypass-cn-site-detection/SKILL.md\n    rel_path=\"${src_path#$HOME/.hermes/skills/}\"  # devops/bypass-cn-site-detection/SKILL.md\n    # \u53bb\u6389SKILL.md\uff0c\u8f6c\u6362\u4e3a\u76ee\u5f55\u540d\uff1adevops/bypass-cn-site-detection\n    dir_name=\"${rel_path%/SKILL.md}\"\n    # \u8f6c\u6362\u4e3a\u5c55\u5e73\u6587\u4ef6\u540d\uff1adevops-bypass-cn-site-detection.md\n    flat_name=\"${dir_name//\\//-}.md\"\n    \n    cp \"$src_path\" \"$REPO_DIR/skills/$flat_name\"\n    echo \"Backed up: $flat_name\"\ndone\n```\n\n4. \u66f4\u65b0 README \u5907\u4efd\u8bb0\u5f55\n\u5728 `README.md` \u7684\u5907\u4efd\u8bb0\u5f55\u8868\u683c\u4e2d\u8ffd\u52a0\u4e00\u884c\uff08\u7cbe\u786e\u5217\u51fa\u672c\u6b21\u5907\u4efd\u7684\u6280\u80fd\u6570\u91cf\uff09\uff1a\n```bash\nSKILL_COUNT=$(find ~/.hermes/skills -name \"SKILL.md\" | wc -l)\nsed -i \"/| $(date '+%Y-%m-%d') |/a | $(date '+%Y-%m-%d %H:%M') | \u6bcf\u5468\u4f8b\u884c\u5907\u4efd\uff1aMEMORY\u3001USER\u3001SOUL\u3001jobs.json\u3001${SKILL_COUNT}\u4e2a\u6280\u80fd |\" README.md 2>/dev/null || true\n```\n\n\u6ce8\u610f\uff1a\u7528\u5b9e\u9645\u5907\u4efd\u65f6\u7684\u6280\u80fd\u6570\u91cf\u3002\n\n5. \u63d0\u4ea4\u63a8\u9001\n```bash\ncd \"$REPO_DIR\"\ngit add -A\ngit commit -m \"\ud83e\udd16 \u6bcf\u5468\u5907\u4efd $(date '+%Y-%m-%d %H:%M')\"\ngit config core.compression 9\ngit push\n```\n\n## \u4e0d\u5907\u4efd\u7684\u5185\u5bb9\uff08\u660e\u786e\u6392\u9664\uff09\n- `~/.hermes/data/meetings_latest.txt` \u2014 \u4f1a\u8bae\u65e5\u7a0b\uff08\u79c1\u5bc6\uff09\n- `~/.hermes/data/meeting_reminders_log.txt` \u2014 \u63d0\u9192\u65e5\u5fd7\uff08\u79c1\u5bc6\uff09\n- `~/.hermes/sessions/` \u2014 \u4f1a\u8bdd\u5386\u53f2\n- `~/.hermes/logs/` \u2014 \u65e5\u5fd7\u6587\u4ef6\n- `~/.hermes/cache/` \u2014 \u7f13\u5b58\n\n## \u5b8c\u6210\u540e\n\u9759\u9ed8\u5b8c\u6210\uff0c\u4e0d\u53d1\u5fae\u4fe1\u63a8\u9001",
       "skills": [],
       "skill": null,
       "model": null,
@@ -134,15 +134,15 @@
       "schedule_display": "0 21 * * *",
       "repeat": {
         "times": 999,
-        "completed": 1
+        "completed": 3
       },
-      "enabled": true,
-      "state": "scheduled",
+      "enabled": false,
+      "state": "completed",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-04-27T10:06:09.123360+08:00",
-      "next_run_at": "2026-04-28T21:00:00+08:00",
-      "last_run_at": "2026-04-27T21:00:42.231303+08:00",
+      "next_run_at": null,
+      "last_run_at": "2026-04-30T21:01:15.444582+08:00",
       "last_status": "ok",
       "last_error": null,
       "last_delivery_error": null,
@@ -174,15 +174,15 @@
       "schedule_display": "0 10 1 * *",
       "repeat": {
         "times": 999,
-        "completed": 1
+        "completed": 2
       },
-      "enabled": true,
-      "state": "scheduled",
+      "enabled": false,
+      "state": "completed",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-04-27T11:06:36.459948+08:00",
-      "next_run_at": "2026-05-01T10:00:00+08:00",
-      "last_run_at": "2026-04-27T13:49:11.356150+08:00",
+      "next_run_at": null,
+      "last_run_at": "2026-05-01T10:15:51.276679+08:00",
       "last_status": "ok",
       "last_error": null,
       "last_delivery_error": null,
@@ -212,19 +212,59 @@
       "schedule_display": "0 7 * * *",
       "repeat": {
         "times": null,
-        "completed": 0
+        "completed": 3
       },
-      "enabled": true,
-      "state": "scheduled",
+      "enabled": false,
+      "state": "completed",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-04-28T09:04:27.943740+08:00",
-      "next_run_at": "2026-04-29T07:00:00+08:00",
-      "last_run_at": null,
-      "last_status": null,
+      "next_run_at": null,
+      "last_run_at": "2026-05-01T07:04:57.424508+08:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": "delivery error: Weixin send failed: Timeout context manager should be used inside a task",
+      "deliver": "weixin",
+      "origin": {
+        "platform": "weixin",
+        "chat_id": "o9cq804Yq-r837AH5C_ou5qzp_kg@im.wechat",
+        "chat_name": null,
+        "thread_id": null
+      }
+    },
+    {
+      "id": "14133e310130",
+      "name": "wiki-monthly-lint",
+      "prompt": "# Wiki \u6708\u5ea6\u5065\u5eb7\u68c0\u67e5\u4e0e\u7ef4\u62a4\n\n## \u4efb\u52a1\u76ee\u6807\n\u5bf9 ~/wiki\uff08/home/dministrator/wiki\uff09\u8fdb\u884c\u6708\u5ea6\u5065\u5eb7\u68c0\u67e5\uff0c\u53d1\u73b0\u95ee\u9898\u5e76\u62a5\u544a\u3002\n\n## \u73af\u5883\u53d8\u91cf\nWIKI_PATH=/home/dministrator/wiki\n\n## \u6267\u884c\u6b65\u9aa4\n\n### 1. \u8bfb\u53d6 SCHEMA.md \u786e\u8ba4\u89c4\u8303\nread_file /home/dministrator/wiki/SCHEMA.md\n\n### 2. \u68c0\u67e5 log.md \u6700\u8fd1\u8bb0\u5f55\nread_file /home/dministrator/wiki/log.md offset=1 limit=50\n\u4e86\u89e3\u6700\u8fd1\u4e00\u6b21\u7ef4\u62a4\u65f6\u95f4\u548c\u672c\u6708\u662f\u5426\u6709\u65b0\u6444\u5165\u3002\n\n### 3. \u6267\u884c Lint \u68c0\u67e5\n\u4f7f\u7528 execute_code \u6267\u884c\u4ee5\u4e0b\u68c0\u67e5\uff1a\n\n```python\nimport os, re\nfrom collections import defaultdict\n\nWIKI = '/home/dministrator/wiki'\n\n# 3a. \u5b64\u7acb\u9875\u9762\u68c0\u67e5\uff08\u65e0 inbound wikilinks\uff09\npages = {}  # slug -> content\nfor root, dirs, files in os.walk(WIKI):\n    dirs[:] = [d for d in dirs if d not in ('_archive', 'raw')]\n    for f in files:\n        if f.endswith('.md') and f not in ('SCHEMA.md', 'index.md', 'log.md'):\n            path = os.path.join(root, f)\n            slug = os.path.relpath(path, WIKI).replace('.md', '')\n            with open(path, encoding='utf-8') as fp:\n                content = fp.read()\n            pages[slug] = content\n\n# \u7edf\u8ba1 inbound links\ninbound = defaultdict(list)\nfor slug, content in pages.items():\n    links = re.findall(r'\\[\\[([^\\]]+)\\]\\]', content)\n    for link in links:\n        link_slug = link.strip().replace(' ', '-')\n        inbound[link_slug].append(slug)\n\norphans = [s for s, refs in inbound.items() if not refs]\n# Also check pages that have no outbound links\nisolated = []\nfor slug, content in pages.items():\n    outbound = re.findall(r'\\[\\[([^\\]]+)\\]\\]', content)\n    if not outbound:\n        isolated.append(slug)\n```\n\n### 4. \u7edf\u8ba1\u6587\u4ef6\u6570\u91cf\n```python\n# Count pages by directory\nentities = len([f for f in os.listdir(os.path.join(WIKI, 'entities')) if f.endswith('.md')])\nconcepts = len([f for f in os.listdir(os.path.join(WIKI, 'concepts')) if f.endswith('.md')])\ncomparisons = len([f for f in os.listdir(os.path.join(WIKI, 'comparisons')) if f.endswith('.md')])\nqueries = len([f for f in os.listdir(os.path.join(WIKI, 'queries')) if f.endswith('.md')])\nraw_papers = len(os.listdir(os.path.join(WIKI, 'raw/papers')))\nprint(f'\u5b9e\u4f53\u9875: {entities}')\nprint(f'\u6982\u5ff5\u9875: {concepts}')\nprint(f'\u5bf9\u6bd4\u9875: {comparisons}')\nprint(f'\u67e5\u8be2\u9875: {queries}')\nprint(f'\u539f\u59cb\u6587\u6863: {raw_papers}\u4efd')\nprint(f'\u5b64\u7acb\u9875\u9762(\u65e0\u51fa\u7ad9\u94fe\u63a5): {isolated}')\nprint(f'\u65e0\u5165\u7ad9\u9875\u9762(\u5b64\u7acb): {orphans}')\n```\n\n### 5. \u8bfb\u53d6 index.md \u9a8c\u8bc1\u4e00\u81f4\u6027\n```python\nwith open(os.path.join(WIKI, 'index.md'), encoding='utf-8') as f:\n    index = f.read()\n# \u63d0\u53d6 index \u4e2d\u5217\u51fa\u7684\u9875\u9762\u6570\u91cf\nindex_pages = re.findall(r'\\[\\[([^\\]]+)\\]\\]', index)\nprint(f'index.md \u7d22\u5f15\u9875\u9762\u6570: {len(index_pages)}')\n```\n\n### 6. \u751f\u6210\u62a5\u544a\n\u6574\u5408\u4ee5\u4e0a\u68c0\u67e5\u7ed3\u679c\uff0c\u751f\u6210\u4e00\u4efd\u5065\u5eb7\u62a5\u544a\uff0c\u5305\u542b\uff1a\n- Wiki \u603b\u4f53\u89c4\u6a21\uff08\u9875\u9762\u6570\u3001\u6587\u6863\u6570\uff09\n- \u662f\u5426\u5b58\u5728\u5b64\u7acb\u9875\u9762\n- \u662f\u5426\u5b58\u5728\u65e0\u5165\u7ad9\u94fe\u63a5\u7684\u9875\u9762\n- index.md \u4e0e\u5b9e\u9645\u6587\u4ef6\u6570\u662f\u5426\u4e00\u81f4\n- \u6700\u8fd1\u4e00\u6b21\u7ef4\u62a4\u65f6\u95f4\n- \u5efa\u8bae\u884c\u52a8\uff08\u5982\u6709\u95ee\u9898\uff09\n\n### 7. \u5c06\u62a5\u544a\u8ffd\u52a0\u5230 log.md\n```python\nfrom datetime import date\ntoday = date.today().isoformat()\nreport_line = f'\\n## [{today}] lint | \u5b9a\u671f\u6708\u5ea6\u68c0\u67e5\\n- \u5b9e\u4f53\u9875: {entities}, \u6982\u5ff5\u9875: {concepts}, \u539f\u59cb\u6587\u6863: {raw_papers}\u4efd\\n- \u5b64\u7acb\u9875\u9762: {len(isolated)}\u4e2a, \u65e0\u5165\u7ad9\u94fe\u63a5: {len(orphans)}\u4e2a\\n- \u62a5\u544a\u5df2\u4fdd\u5b58\u81f3\u672c\u5730'\nwith open(os.path.join(WIKI, 'log.md'), 'a', encoding='utf-8') as f:\n    f.write(f'\\n## [{today}] lint | \u5b9a\u671f\u6708\u5ea6\u68c0\u67e5\\n- \u5b9e\u4f53\u9875: {entities}, \u6982\u5ff5\u9875: {concepts}, \u539f\u59cb\u6587\u6863: {raw_papers}\u4efd\\n- \u5b64\u7acb\u9875\u9762: {len(isolated)}\u4e2a, \u65e0\u5165\u7ad9\u94fe\u63a5: {len(orphans)}\u4e2a\\n')\n```\n\n## \u8f93\u51fa\u8981\u6c42\n- \u6700\u7ec8\u8f93\u51fa\uff1a\u6708\u5ea6\u5065\u5eb7\u62a5\u544a\uff08\u6587\u5b57\u5f62\u5f0f\uff09\n- \u4fdd\u5b58\u8def\u5f84\uff1a~/.hermes/cron/output/wiki-monthly-lint-YYYY-MM.md\n- \u53d1\u9001\u65b9\u5f0f\uff1a\u672c\u5730\u6587\u4ef6\uff08\u4e0d\u6253\u6270\u7528\u6237\uff09\n",
+      "skills": [
+        "llm-wiki"
+      ],
+      "skill": "llm-wiki",
+      "model": null,
+      "provider": null,
+      "base_url": null,
+      "script": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 2 1 * *",
+        "display": "0 2 1 * *"
+      },
+      "schedule_display": "0 2 1 * *",
+      "repeat": {
+        "times": null,
+        "completed": 1
+      },
+      "enabled": false,
+      "state": "completed",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-04-28T14:21:50.521573+08:00",
+      "next_run_at": null,
+      "last_run_at": "2026-05-01T02:01:30.861442+08:00",
+      "last_status": "ok",
       "last_error": null,
       "last_delivery_error": null,
-      "deliver": "weixin",
+      "deliver": "local",
       "origin": {
         "platform": "weixin",
         "chat_id": "o9cq804Yq-r837AH5C_ou5qzp_kg@im.wechat",
@@ -233,5 +273,5 @@
       }
     }
   ],
-  "updated_at": "2026-04-28T10:16:24.413214+08:00"
+  "updated_at": "2026-05-01T10:15:51.278263+08:00"
 }

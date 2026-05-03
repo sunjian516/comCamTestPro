@@ -90,7 +90,7 @@ search_query=au:hinton+AND+cat:cs.LG
 
 | Parameter | Options |
 |-----------|---------|
-| `sortBy` | `relevance`, `lastUpdatedDate`, `submittedDate` |
+| `sortBy` | `relevance` ← **默认推荐**, `lastUpdatedDate`, `submittedDate` |
 | `sortOrder` | `ascending`, `descending` |
 | `start` | Result offset (0-based) |
 | `max_results` | Number of results (default 10, max 30000) |
@@ -279,3 +279,25 @@ Papers can be withdrawn after submission. When this happens:
 - The `<summary>` field contains a withdrawal notice (look for "withdrawn" or "retracted")
 - Metadata fields may be incomplete
 - Always check the summary before treating a result as a valid paper
+
+## Pitfalls & Lessons Learned
+
+### `sortBy=date` gives irrelevant results on large queries
+- **Problem**: YOLOV8 search with `submittedDate` → only 1/8 results relevant; rest are unrelated papers published recently
+- **Cause**: arXiv sorts by recency, not semantic similarity. Large datasets → irrelevant papers flood top results
+- **Fix**: Always use `sortBy=relevance` for research discovery; reserve `submittedDate` only for "what's new in category X" browsing
+
+### Batch abstract extraction workflow
+When you need abstracts from multiple specific papers (e.g., user asks "查一下人脸算法论文，提取摘要"):
+1. Search to get paper IDs (e.g., `curl ...?search_query=all:face+recognition+algorithm&sortBy=relevance`)
+2. Loop through IDs to scrape abstracts from the HTML abs page
+3. Present results grouped by paper with arxiv_id, title, date, and abstract
+
+```python
+# Batch extract abstracts from known paper IDs
+for paper_id in ["2505.15272", "2412.02198", "2504.07392"]:
+    html = get_page(f"https://arxiv.org/abs/{paper_id}")
+    abstract = parse_abstract(html)  # regex or BeautifulSoup
+```
+
+The API's `<summary>` field only returns metadata, not the full abstract page content — use web scraping of the HTML abs page instead for full abstracts.
